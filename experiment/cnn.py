@@ -28,17 +28,20 @@ FILTERS_LENGTH = [2, 3, 4]
 class CNNClassifier(nn.Module):
     def __init__(self, 
                  pretrained_embeddings_path, 
-                 dictionary,
-                 vector_size,
+                 token_to_index,
+                 vector_size=300,
                  freeze_embedings):
         super().__init__()
-        embeddings_matrix = torch.randn(len(dictionary), vector_size)
+        with gzip.open(token_to_index, "rt") as fh:
+            token_to_index = json.load(fh)
+        embeddings_matrix = torch.randn(len(token_to_index), vector_size)
         embeddings_matrix[0] = torch.zeros(vector_size)
         with gzip.open(pretrained_embeddings_path, "rt") as fh:
+            next(fh)
             for line in fh:
                 word, vector = line.strip().split(None, 1)
-                if word in dictionary.token2id:
-                    embeddings_matrix[dictionary.token2id[word]] =\
+                if word in token_to_index:
+                    embeddings_matrix[token_to_index[word]] =\
                         torch.FloatTensor([float(n) for n in vector.split()])
         self.embeddings = nn.Embedding.from_pretrained(embeddings_matrix,
                                                        freeze=freeze_embedings,
@@ -99,7 +102,7 @@ if __name__ == "__main__":
                         type=float)
     parser.add_argument("--epochs",
                         help="Number of epochs",
-                        default=5,
+                        default=2,
                         type=int)
 
     args = parser.parse_args()
