@@ -1,0 +1,15 @@
+artifact_uri: file:///users/mugrin/AprendizajeProfundo/mlruns/1/5f08c80323bd46ca9df88872c5d275ee/artifacts
+end_time: 1616068373640
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: 5f08c80323bd46ca9df88872c5d275ee
+run_uuid: 5f08c80323bd46ca9df88872c5d275ee
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1616068218752
+status: 4
+tags: []
+user_id: matias

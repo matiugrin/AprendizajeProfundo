@@ -29,8 +29,9 @@ class CNNClassifier(nn.Module):
     def __init__(self, 
                  pretrained_embeddings_path, 
                  token_to_index,
-                 vector_size=300,
-                 freeze_embedings):
+                 vector_size,
+                 n_labels,
+                 freeze_embedings=True):
         super().__init__()
         with gzip.open(token_to_index, "rt") as fh:
             token_to_index = json.load(fh)
@@ -53,7 +54,7 @@ class CNNClassifier(nn.Module):
             )
         self.convs = nn.ModuleList(self.convs)
         self.fc = nn.Linear(FILTERS_COUNT * len(FILTERS_LENGTH), 128)
-        self.output = nn.Linear(128, 1)
+        self.output = nn.Linear(128, n_labels)
         self.vector_size = vector_size
     
     @staticmethod
@@ -102,7 +103,7 @@ if __name__ == "__main__":
                         type=float)
     parser.add_argument("--epochs",
                         help="Number of epochs",
-                        default=2,
+                        default=1,
                         type=int)
 
     args = parser.parse_args()
@@ -110,7 +111,7 @@ if __name__ == "__main__":
     pad_sequences = PadSequences(
         pad_value=0,
         max_length=None,
-        min_length=max(FILTERS_LENGTH)
+        min_length=1
     )
 
     logging.info("Building training dataset")
@@ -125,6 +126,9 @@ if __name__ == "__main__":
         collate_fn=pad_sequences,
         drop_last=False
     )
+
+    custom_data = iter(train_loader).next()
+    print(custom_data["data"].shape, custom_data["target"].shape)
 
     if args.validation_data:
         logging.info("Building validation dataset")
@@ -173,8 +177,7 @@ if __name__ == "__main__":
             "embeddings_size": args.embeddings_size,
             "epochs": args.epochs,    
             "filters_count": FILTERS_COUNT,
-            "filters_length": FILTERS_LENGTH,
-            "fc_size": 128
+            "filters_length": FILTERS_LENGTH
         })
 
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -184,8 +187,8 @@ if __name__ == "__main__":
             pretrained_embeddings_path=args.pretrained_embeddings,
             token_to_index=args.token_to_index,
             n_labels=train_dataset.n_labels,
-            hidden_layers=args.hidden_layers,
-            dropout=args.dropout,
+            # hidden_layers=args.hidden_layers,
+            # dropout=args.dropout,
             vector_size=args.embeddings_size,
             freeze_embedings=True  # This can be a hyperparameter
         )
