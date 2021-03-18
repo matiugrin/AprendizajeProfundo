@@ -102,7 +102,7 @@ if __name__ == "__main__":
                         type=float)
     parser.add_argument("--epochs",
                         help="Number of epochs",
-                        default=3,
+                        default=5,
                         type=int)
 
     args = parser.parse_args()
