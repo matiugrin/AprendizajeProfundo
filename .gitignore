@@ -113,7 +113,6 @@ slurm*.out
 submit_job_slurm.sh
 logs/
 martin_fierro.txt
-mlruns
 data/
 .vscode/
 .*.sw*
