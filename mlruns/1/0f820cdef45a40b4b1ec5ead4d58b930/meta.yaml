@@ -2,7 +2,7 @@ artifact_uri: file:///users/mugrin/AprendizajeProfundo/mlruns/1/0f820cdef45a40b4
 end_time: 1616069097367
 entry_point_name: ''
 experiment_id: '1'
-lifecycle_stage: active
+lifecycle_stage: deleted
 name: ''
 run_id: 0f820cdef45a40b4b1ec5ead4d58b930
 run_uuid: 0f820cdef45a40b4b1ec5ead4d58b930

@@ -21,16 +21,14 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-EPOCHS = 2
-FILTERS_COUNT = 100
-FILTERS_LENGTH = [2, 3, 4]
-
 class CNNClassifier(nn.Module):
     def __init__(self, 
                  pretrained_embeddings_path, 
                  token_to_index,
                  vector_size,
                  n_labels,
+                 filter_count=100,
+                 filters_lenght=[2,3,4],
                  freeze_embedings=True):
         super().__init__()
         with gzip.open(token_to_index, "rt") as fh:
@@ -48,14 +46,16 @@ class CNNClassifier(nn.Module):
                                                        freeze=freeze_embedings,
                                                        padding_idx=0)
         self.convs = []
-        for filter_lenght in FILTERS_LENGTH:
+        for filter_lenght in filters_lenght:
             self.convs.append(
-                nn.Conv1d(vector_size, FILTERS_COUNT, filter_lenght)
+                nn.Conv1d(vector_size, filter_count, filter_lenght)
             )
         self.convs = nn.ModuleList(self.convs)
-        self.fc = nn.Linear(FILTERS_COUNT * len(FILTERS_LENGTH), 128)
+        self.fc = nn.Linear(filter_count * len(filters_lenght), 128)
         self.output = nn.Linear(128, n_labels)
         self.vector_size = vector_size
+        self.filter_count = filter_count
+        self.filters_lenght = filters_lenght
     
     @staticmethod
     def conv_global_max_pool(x, conv):
@@ -66,7 +66,8 @@ class CNNClassifier(nn.Module):
         x = [self.conv_global_max_pool(x, conv) for conv in self.convs]
         x = torch.cat(x, dim=1)
         x = F.relu(self.fc(x))
-        x = torch.sigmoid(self.output(x))
+        # x = torch.softmax(self.output(x), dim=1)
+        x = self.output(x)
         return x
 
 
@@ -105,13 +106,22 @@ if __name__ == "__main__":
                         help="Number of epochs",
                         default=1,
                         type=int)
+    parser.add_argument("--filter-count",
+                        help="Number of filters",
+                        default=100,
+                        type=int)
+    parser.add_argument("--filters-lenght",
+                        help="Filters Lenght",
+                        nargs="+",
+                        default=[2, 3, 4],
+                        type=int)
 
     args = parser.parse_args()
 
     pad_sequences = PadSequences(
         pad_value=0,
         max_length=None,
-        min_length=1
+        min_length=max( args.filters_lenght )
     )
 
     logging.info("Building training dataset")
@@ -172,17 +182,18 @@ if __name__ == "__main__":
         mlflow.log_params({
             "model_type": "CNN",
             "embeddings": args.pretrained_embeddings,
-            "hidden_layers": args.hidden_layers,
-            "dropout": args.dropout,
+            # "hidden_layers": args.hidden_layers,
+            # "dropout": args.dropout,
             "embeddings_size": args.embeddings_size,
             "epochs": args.epochs,    
-            "filters_count": FILTERS_COUNT,
-            "filters_length": FILTERS_LENGTH
+            "filter_count": args.filter_count,
+            "filters_length": args.filters_lenght
         })
 
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
         logging.info("Building classifier")
+        logging.info("n_labels: " + str(train_dataset.n_labels))
         model = CNNClassifier(
             pretrained_embeddings_path=args.pretrained_embeddings,
             token_to_index=args.token_to_index,
@@ -190,7 +201,9 @@ if __name__ == "__main__":
             # hidden_layers=args.hidden_layers,
             # dropout=args.dropout,
             vector_size=args.embeddings_size,
-            freeze_embedings=True  # This can be a hyperparameter
+            freeze_embedings=True,  # This can be a hyperparameter
+            filter_count=args.filter_count,
+            filters_lenght=args.filters_lenght
         )
         model = model.to(device)
         loss = nn.CrossEntropyLoss() #  loss = nn.BCELoss()
