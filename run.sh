@@ -22,7 +22,6 @@ export CUDA_HOME=/opt/cuda/10.1
 export PATH=$CUDA_HOME/bin:$PATH
 export CUDA_VISIBLE_DEVICES=0
 
-# mlp or cnn
 python -m experiment.cnn \
     --train-data ./data/meli-challenge-2019/spanish.train.jsonl.gz \
     --token-to-index ./data/meli-challenge-2019/spanish_token_to_index.json.gz \
@@ -30,5 +29,7 @@ python -m experiment.cnn \
     --language spanish \
     --validation-data ./data/meli-challenge-2019/spanish.validation.jsonl.gz \
     --embeddings-size 300 \
-    --hidden-layers 256 128 \
-    --dropout 0.2
+    --filters-lenght 2 3 4 5 6\
+    --filter-count 100 \
+    --epochs 10
+
