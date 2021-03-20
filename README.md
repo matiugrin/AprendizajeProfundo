@@ -25,11 +25,11 @@ validation_loss:    1.122
 --epochs            10
 
 ### Con el test de Validacion se obtuvieron los siguientes resultados:
-**test_bacc	        0.809
-test_loss	        0.817**
-train_loss	        1.015
-validation_bacc	    0.755
-validation_loss	    1.046
+**test_bacc	        0.809** 
+**test_loss	        0.817** 
+train_loss	        1.015 
+validation_bacc	    0.755 
+validation_loss	    1.046 
 
     self.fc = nn.Linear(filter_count * len(filters_lenght), 1024)
     self.output = nn.Linear(1024, n_labels)
