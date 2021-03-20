@@ -12,7 +12,8 @@ train_loss:1.08
 validation_bacc:0.738
 validation_loss:1.122
 
-Ese fue el mejor modelo obtenido, se hicieron pruebas con diferente cantidad de filtros, epochs y filters-lenght. 
+De los experimentos realizados, ese fue el mejor modelo obtenido, se hicieron pruebas con diferente cantidad de filtros, epochs y filters-lenght. 
+
 
 Por otra parte se realizaron pruebas con MLP (embeddings_size	300, epochs	5, hidden_layers	[256, 128]). Cuyos valores obtenidos son:
 train_loss:2.409
