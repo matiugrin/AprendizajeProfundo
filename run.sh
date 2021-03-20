@@ -28,8 +28,9 @@ python -m experiment.cnn \
     --pretrained-embeddings ./data/SBW-vectors-300-min5.txt.gz \
     --language spanish \
     --validation-data ./data/meli-challenge-2019/spanish.validation.jsonl.gz \
+    --test-data ./data/meli-challenge-2019/spanish.test.jsonl.gz \
     --embeddings-size 300 \
-    --filters-lenght 2 3 4 5 6\
+    --filters-lenght 2 3 4 \
     --filter-count 100 \
     --epochs 10
 

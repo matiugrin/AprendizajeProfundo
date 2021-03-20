@@ -54,8 +54,8 @@ class CNNClassifier(nn.Module):
             )
 
         self.convs = nn.ModuleList(self.convs)
-        self.fc = nn.Linear(filter_count * len(filters_lenght), 256)
-        self.output = nn.Linear(256, n_labels)
+        self.fc = nn.Linear(filter_count * len(filters_lenght), 1024)
+        self.output = nn.Linear(1024, n_labels)
         self.vector_size = vector_size
         self.filter_count = filter_count
         self.filters_lenght = filters_lenght
