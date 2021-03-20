@@ -33,9 +33,12 @@ class CNNClassifier(nn.Module):
         super().__init__()
         with gzip.open(token_to_index, "rt") as fh:
             token_to_index = json.load(fh)
+        # generamos nuestra matriz de embeddings aleatorios, alto - longitud del diccionario, ancho - tamano de vector
         embeddings_matrix = torch.randn(len(token_to_index), vector_size)
+        # se genera con ceros porque es para padding
         embeddings_matrix[0] = torch.zeros(vector_size)
 
+        #cargamos nuestros vectores preentrenados en nuestra matriz de embeddings.
         with gzip.open(pretrained_embeddings_path, "rt") as fh:
             next(fh)
             for line in fh:
@@ -44,31 +47,44 @@ class CNNClassifier(nn.Module):
                     embeddings_matrix[token_to_index[word]] =\
                         torch.FloatTensor([float(n) for n in vector.split()])
 
+        # no se aplica ningun tipo de optimizacion sobre los embeddings (si freeze es TRUE),
+        # si no hacemos esto cuando tenemos embeddings preentrenados, es probable un overfitting
         self.embeddings = nn.Embedding.from_pretrained(embeddings_matrix,
                                                        freeze=freeze_embedings, 
                                                        padding_idx=0)
+
+        # generamos nuestras redes convolucionales, para cada uno de los filter_length (2,3,4) generamos una conv de 1D 
+        # que toma como valor de entrada el vector_size (300) tamano de los embeddings de entrada, genera filter_count que en este
+        # caso son 100 y el tamano del kernel es filter lenght.
         self.convs = []
         for filter_lenght in filters_lenght:
             self.convs.append(
                 nn.Conv1d(vector_size, filter_count, filter_lenght)
             )
 
+        # Para indicar que es una lista de modulos
         self.convs = nn.ModuleList(self.convs)
-        self.fc = nn.Linear(filter_count * len(filters_lenght), 256)
-        self.output = nn.Linear(256, n_labels)
+        
+        self.fc = nn.Linear(filter_count * len(filters_lenght), 128)
+        self.output = nn.Linear(128, n_labels)
         self.vector_size = vector_size
         self.filter_count = filter_count
         self.filters_lenght = filters_lenght
     
+    #sobre el input que es nuestra matriz de embeddings, aplica una convolucion y hace max pooling.
+    # a ese resultado se le aplica una relu
     @staticmethod
     def conv_global_max_pool(x, conv):
         return F.relu(conv(x).transpose(1, 2).max(1)[0])
     
     def forward(self, x):
         x = self.embeddings(x).transpose(1, 2)  # Conv1d takes (batch, channel, seq_len)
+        # aplicamos conv_global_max_pool para cada una de las convoluciones de la lista
         x = [self.conv_global_max_pool(x, conv) for conv in self.convs]
+        # concatenamos 
         x = torch.cat(x, dim=1)
         x = F.relu(self.fc(x))
+        # x = torch.sigmoid(self.output(x))
         x = self.output(x)
         return x
 
@@ -132,7 +148,7 @@ if __name__ == "__main__":
     train_loader = DataLoader(
         train_dataset,
         batch_size=128,  # This can be a hyperparameter
-        shuffle=False,
+        shuffle=True,
         collate_fn=pad_sequences,
         drop_last=False
     )
@@ -205,9 +221,6 @@ if __name__ == "__main__":
             filter_count=args.filter_count,
             filters_lenght=args.filters_lenght
         )
-        # model = MLP()#Generamos un nuevo modelo
-        # model.load_state_dict(torch.load("../models/CNN_Meli2019"))#Cargamos los pesos anteriores
-        
         model = model.to(device)
         loss = nn.CrossEntropyLoss() #  loss = nn.BCELoss()
         optimizer = optim.Adam(
@@ -249,8 +262,6 @@ if __name__ == "__main__":
                         predictions.extend(output.argmax(axis=1).detach().cpu().numpy())
                     mlflow.log_metric("validation_loss", sum(running_loss) / len(running_loss), epoch)
                     mlflow.log_metric("validation_bacc", balanced_accuracy_score(targets, predictions), epoch)
-            
-            # torch.save(model.state_dict(),"../models/CNN_Meli2019")
 
         if test_dataset:
             logging.info("Evaluating model on test")
