@@ -29,7 +29,7 @@ python -m experiment.cnn \
     --language spanish \
     --validation-data ./data/meli-challenge-2019/spanish.validation.jsonl.gz \
     --embeddings-size 300 \
-    --filters-lenght 2 3 4 5 \
+    --filters-lenght 2 3 4 5 6\
     --filter-count 100 \
     --epochs 10
 
