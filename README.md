@@ -1,6 +1,6 @@
 # Trabajo Practico, Clasificación de texto del MeLi Challenge 2019.
 
-### Se entreno una Red Convolucional con los siguientes parametros:
+### Se entreno una Red Convolucional con los siguientes parametros: (/experiment/cnn.py)
     
 --embeddings-size 300 \
 --filters-lenght 2 3 4 5 \
